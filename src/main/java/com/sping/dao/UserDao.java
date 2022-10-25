@@ -1,6 +1,7 @@
 package com.sping.dao;
 
 import com.sping.domain.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.sql.*;
 import java.util.List;
@@ -51,6 +52,9 @@ public class UserDao {
             rs = pstmt.executeQuery();
             if(rs.next()) {
                 user = new User(rs.getString("id"), rs.getString("name"), rs.getString("password"));
+            }
+            if(user == null) {
+                throw new EmptyResultDataAccessException(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
