@@ -6,6 +6,14 @@ import java.sql.*;
 import java.util.List;
 
 public class UserDao {
+
+    private AWSConnectionMaker awsConnectionMaker;
+    private ConnectionMaker connectionMaker;
+
+    public UserDao() {
+        this.connectionMaker = new AWSConnectionMaker();
+    }
+
     public List<User> selectAll() {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -13,7 +21,7 @@ public class UserDao {
         List<User> userList = null;
 
         try {
-            conn = ConnectionMaker.getConnection();
+            conn = connectionMaker.getConnection();
             pstmt = conn.prepareStatement("select * from users");
             rs = pstmt.executeQuery();
 
@@ -38,7 +46,7 @@ public class UserDao {
         User user = null;
 
         try{
-            conn = ConnectionMaker.getConnection();
+            conn = connectionMaker.getConnection();
             pstmt = conn.prepareStatement("select id, name, password from users where id = ?");
             pstmt.setString(1, sId);
             rs = pstmt.executeQuery();
@@ -59,7 +67,7 @@ public class UserDao {
         PreparedStatement pstmt = null;
 
         try {
-            conn = ConnectionMaker.getConnection();
+            conn = connectionMaker.getConnection();
             pstmt = conn.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
             pstmt.setString(1, "id");
             pstmt.setString(2, "name");
@@ -79,7 +87,7 @@ public class UserDao {
         PreparedStatement pstmt = null;
 
         try {
-            conn = ConnectionMaker.getConnection();
+            conn = connectionMaker.getConnection();
             pstmt = conn.prepareStatement("delete from users");
             pstmt.executeUpdate();
         } catch (SQLException e) {
