@@ -14,6 +14,22 @@ public class UserDao {
         this.connectionMaker = connectionMaker;
     }
 
+    public void jdbcContextWithStatementStrategy(StatementStrategy st) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = connectionMaker.getConnection();
+            ps = st.makePreparedStatement(conn);
+
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        } finally {
+            ConnectionClose.close(conn, ps);
+        }
+    }
+
     public List<User> selectAll() {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -66,39 +82,11 @@ public class UserDao {
     }
 
     public void add(User user) {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            conn = connectionMaker.getConnection();
-            pstmt = conn.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
-            pstmt.setString(1, user.getId());
-            pstmt.setString(2, user.getName());
-            pstmt.setString(3, user.getPassword());
-
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            ConnectionClose.close(conn, pstmt);
-        }
+        jdbcContextWithStatementStrategy(new AddStrategy(user));
     }
 
     public void deleteAll() {
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            conn = connectionMaker.getConnection();
-            pstmt = new DeleteAllStrategy().makePreparedStatement(conn);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            ConnectionClose.close(conn, pstmt);
-        }
+        jdbcContextWithStatementStrategy(new DeleteAllStrategy());
     }
 
     public int getCount() {
