@@ -101,13 +101,18 @@ public class UserDao {
     public int getCount() {
         Connection conn = null;
         PreparedStatement pstmt = null;
+        ResultSet rs = null;
         int cnt = 0;
 
         try{
             conn = connectionMaker.getConnection();
             pstmt = conn.prepareStatement("select count(*) from users");
 
-            cnt = pstmt.executeUpdate();
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                cnt = rs.getInt(1);
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
