@@ -69,9 +69,9 @@ public class UserDao {
         try {
             conn = connectionMaker.getConnection();
             pstmt = conn.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
-            pstmt.setString(1, "id");
-            pstmt.setString(2, "name");
-            pstmt.setString(3, "password");
+            pstmt.setString(1, user.getId());
+            pstmt.setString(2, user.getName());
+            pstmt.setString(3, user.getPassword());
 
             pstmt.executeUpdate();
         } catch (SQLException e) {
