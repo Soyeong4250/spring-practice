@@ -97,4 +97,24 @@ public class UserDao {
             ConnectionClose.close(conn, pstmt);
         }
     }
+
+    public int getCount() {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        int cnt = 0;
+
+        try{
+            conn = connectionMaker.getConnection();
+            pstmt = conn.prepareStatement("select count(*) from users");
+
+            cnt = pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            ConnectionClose.close(conn, pstmt);
+        }
+
+        return cnt;
+    }
 }
