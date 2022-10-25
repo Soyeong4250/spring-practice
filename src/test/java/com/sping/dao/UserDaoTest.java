@@ -11,6 +11,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
@@ -59,6 +61,19 @@ class UserDaoTest {
     void deleteAll() {
         userDao.deleteAll();
         assertEquals(0, userDao.getCount());
+    }
+
+    @Test
+    @DisplayName("selectAll 테스트")
+    void selectAll() {
+        List<User> userList = userDao.selectAll();
+        assertEquals(0, userList.size());
+        User user1 = new User("1", "Kyeonghwan", "1123");
+        userDao.add(user1);
+        User user2 = new User("2", "Sujin", "4321");
+        userDao.add(user2);
+        userList = userDao.selectAll();
+        assertEquals(2, userList.size());
     }
 
 }
