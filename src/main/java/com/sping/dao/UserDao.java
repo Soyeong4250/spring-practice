@@ -3,31 +3,18 @@ package com.sping.dao;
 import com.sping.domain.User;
 import org.springframework.dao.EmptyResultDataAccessException;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.List;
 
 public class UserDao {
 
-    private ConnectionMaker connectionMaker;
+    private final DataSource dataSource;
+    private final JdbcContext jdbcContext;
 
-    public UserDao(ConnectionMaker connectionMaker) {
-        this.connectionMaker = connectionMaker;
-    }
-
-    public void jdbcContextWithStatementStrategy(StatementStrategy st) {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        try {
-            conn = connectionMaker.getConnection();
-            ps = st.makePreparedStatement(conn);
-
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            ConnectionClose.close(conn, ps);
-        }
+    public UserDao(DataSource dataSource) {
+        this.dataSource = dataSource;
+        this.jdbcContext = new JdbcContext(dataSource);
     }
 
     public List<User> selectAll() {
@@ -37,7 +24,7 @@ public class UserDao {
         List<User> userList = null;
 
         try {
-            conn = connectionMaker.getConnection();
+            conn = dataSource.getConnection();
             pstmt = conn.prepareStatement("select * from users");
             rs = pstmt.executeQuery();
 
@@ -62,7 +49,7 @@ public class UserDao {
         User user = null;
 
         try{
-            conn = connectionMaker.getConnection();
+            conn = dataSource.getConnection();
             pstmt = conn.prepareStatement("select id, name, password from users where id = ?");
             pstmt.setString(1, sId);
             rs = pstmt.executeQuery();
@@ -82,11 +69,25 @@ public class UserDao {
     }
 
     public void add(User user) {
-        jdbcContextWithStatementStrategy(new AddStrategy(user));
+        jdbcContext.workWithStetementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection conn) throws SQLException {
+                PreparedStatement pstmt = conn.prepareStatement("insert into users(id, name, password) values (?, ?, ?)");
+                pstmt.setString(1, user.getId());
+                pstmt.setString(2, user.getName());
+                pstmt.setString(3, user.getPassword());
+                return pstmt;
+            }
+        });
     }
 
     public void deleteAll() {
-        jdbcContextWithStatementStrategy(new DeleteAllStrategy());
+        jdbcContext.workWithStetementStrategy(new StatementStrategy() {
+            @Override
+            public PreparedStatement makePreparedStatement(Connection conn) throws SQLException {
+                return conn.prepareStatement("delete from users");
+            }
+        });
     }
 
     public int getCount() {
@@ -96,7 +97,7 @@ public class UserDao {
         int cnt = 0;
 
         try{
-            conn = connectionMaker.getConnection();
+            conn = dataSource.getConnection();
             pstmt = conn.prepareStatement("select count(*) from users");
 
             rs = pstmt.executeQuery();
@@ -113,4 +114,5 @@ public class UserDao {
 
         return cnt;
     }
+    
 }
